@@ -1,27 +1,18 @@
 package org.firstinspires.ftc.TestCodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import org.firstinspires.ftc.robotcore.external.Func;
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 
 @Autonomous(name = "Mecanum Autonomous", group = "Live")
 public class MecanumAuto extends LinearOpMode {
@@ -42,7 +33,7 @@ public class MecanumAuto extends LinearOpMode {
     
     // Encoder numbers
     private final double WHEEL_CIRCUMFERENCE = 4 * Math.PI;
-    private final double GEAR_RATIO = 40;
+    private final double GEAR_RATIO = 1;
     private final int TICKS_PER_REV = 1120; 
     private final double DRIVE_SPEED = 0.75;
     private final double OFFSET = 6;
@@ -69,8 +60,8 @@ public class MecanumAuto extends LinearOpMode {
         markerServo = hardwareMap.get(Servo.class, "marker_servo");
         
         // set motor directions
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        frontLeft.setDirection(DcMotor.Direction.FORWARD);
         backRight.setDirection(DcMotor.Direction.FORWARD);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
         
@@ -113,11 +104,12 @@ public class MecanumAuto extends LinearOpMode {
         // driveDist(4.5 * 23.5);
         
         driveDist(12);
+        //turn(45, Direction.LEFT);
     }
     
     private void drive(double drive, double strafe, double rotate) {
-        double frontRPower = drive - strafe + rotate;
-        double frontLPower = drive + strafe - rotate;
+        double frontRPower = drive + strafe - rotate;
+        double frontLPower = drive - strafe + rotate;
         double backRPower  = drive + strafe + rotate;
         double backLPower  = drive - strafe - rotate;
             
@@ -143,6 +135,7 @@ public class MecanumAuto extends LinearOpMode {
         frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         
         drive(DRIVE_SPEED, 0, 0);
+        /*
         double drivePrecision = 3.5;
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double startAngle = normAngle(angles.firstAngle);
@@ -152,6 +145,7 @@ public class MecanumAuto extends LinearOpMode {
         
         if (minOffset <= 0) minOffset += 360;
         if (maxOffset >= 360) maxOffset -= 360;
+        */
         
         while (isMotorsBusy() && opModeIsActive()) {
             /*angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -182,10 +176,10 @@ public class MecanumAuto extends LinearOpMode {
         telemetry.update();
         drive(0, 0, 0);
 
-        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     
     private void turn(double degrees, Direction dir) {
