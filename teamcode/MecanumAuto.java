@@ -60,8 +60,8 @@ public class MecanumAuto extends LinearOpMode {
         markerServo = hardwareMap.get(Servo.class, "marker_servo");
         
         // set motor directions
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        frontLeft.setDirection(DcMotor.Direction.FORWARD);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.FORWARD);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
         
