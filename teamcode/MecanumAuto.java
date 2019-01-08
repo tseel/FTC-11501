@@ -1,10 +1,11 @@
-package org.firstinspires.ftc.TestCodes;
+package org.firstinspires.ftc.teamCodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 
 @Autonomous(name = "Mecanum Autonomous", group = "Live")
@@ -36,7 +38,6 @@ public class MecanumAuto extends LinearOpMode {
     private final double GEAR_RATIO = 1;
     private final int TICKS_PER_REV = 1120; 
     private final double DRIVE_SPEED = 0.75;
-    private final double OFFSET = 6;
 
     
     final double markerClose = 0;
@@ -83,9 +84,10 @@ public class MecanumAuto extends LinearOpMode {
         
         // imu setup
         BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
-        imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES; // wouldn't return radians even when I set this to radians?
         imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        imuParameters.calibrationDataFile = "AdafruitIMUCalibration.json";
+        imuParameters.mode = BNO055IMU.SensorMode.IMU;
+        imuParameters.calibrationDataFile = "AdafruitIMUCalibration.json"; // i honestly have no idea if this file was created correctly since I'm using OnBotJava
         imuParameters.loggingEnabled = true;
         imuParameters.loggingTag = "IMU";
         imu = hardwareMap.get(BNO055IMU.class, "imu");
@@ -98,13 +100,21 @@ public class MecanumAuto extends LinearOpMode {
         
         //roverTrackables.activate();
         
-        //driveDist(2 * 23.5 * Math.sqrt(2));
-        //drive(0, 0.5, 0);
-        //turn(45, Direction.LEFT);
-        // driveDist(4.5 * 23.5);
+        // distances for this probably need to be worked out
         
-        driveDist(12);
-        //turn(45, Direction.LEFT);
+        // drive diagonally over 2 squares to get into depot
+        driveDist(2 * 23.5 * Math.sqrt(2));
+        // drop marker
+        markerServo.setPosition(markerOpen);
+        // strafe to the left to not hit marker
+        drive(0, -0.5, 0); // TODO: make an actual method for strafing
+        sleep(1000);
+        drive(0,0,0);
+        // turn toward crater
+        turn(45, Direction.RIGHT);
+        markerServo.setPosition(markerClose);
+        // drive to crater
+        driveDist(4.5 * 23.5);
     }
     
     private void drive(double drive, double strafe, double rotate) {
@@ -135,37 +145,8 @@ public class MecanumAuto extends LinearOpMode {
         frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         
         drive(DRIVE_SPEED, 0, 0);
-        /*
-        double drivePrecision = 3.5;
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double startAngle = normAngle(angles.firstAngle);
-        
-        double minOffset = startAngle - OFFSET;
-        double maxOffset = startAngle + OFFSET;
-        
-        if (minOffset <= 0) minOffset += 360;
-        if (maxOffset >= 360) maxOffset -= 360;
-        */
         
         while (isMotorsBusy() && opModeIsActive()) {
-            /*angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            double curAngle = normAngle(angles.firstAngle);
-            
-            if (curAngle <= minOffset && Math.abs(curAngle - minOffset) <= drivePrecision){
-                // if we go under the offset and we're within 10 of it (to prevent overflow errors)
-                frontLeft.setPower(DRIVE_SPEED - 0.1);
-                backLeft.setPower(DRIVE_SPEED - 0.1);
-                frontRight.setPower(DRIVE_SPEED + 0.1);
-                backRight.setPower(DRIVE_SPEED + 0.1);
-            } else if (curAngle >= maxOffset && Math.abs(curAngle - maxOffset) <= drivePrecision) {
-                // if we go over the offset and we're within 10 of it (to prevent overflow errors)
-                frontRight.setPower(DRIVE_SPEED - 0.1);
-                backRight.setPower(DRIVE_SPEED - 0.1);
-                frontLeft.setPower(DRIVE_SPEED + 0.1);
-                backLeft.setPower(DRIVE_SPEED + 0.1);
-            } else {
-                drive(DRIVE_SPEED, 0, 0);
-            }*/
             telemetry.addData("Counts", "%d", counts);
             telemetry.addData("Front left", "%d/%d %.2f %s", frontLeft.getCurrentPosition(), frontLeft.getTargetPosition(), frontLeft.getPower(), frontLeft.isBusy() ? "Busy" : "Finished");
             telemetry.addData("Front right", "%d/%d %.2f %s", frontRight.getCurrentPosition(), frontRight.getTargetPosition(), frontRight.getPower(), frontRight.isBusy() ? "Busy" : "Finished");
@@ -185,25 +166,25 @@ public class MecanumAuto extends LinearOpMode {
     private void turn(double degrees, Direction dir) {
             // constants used for both directions
             double TURNING_SPEED = 0.3;
-            double SLOWDOWN_DISTANCE = 0.75; // percentage of distance before bot slows down
+            double SLOWDOWN_DISTANCE = 0.6; // fraction of distance before bot slows down
             
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             double startAngle = normAngle(angles.firstAngle);
             if (dir == Direction.RIGHT) {
                 double target = startAngle - degrees;
                 double slowdown = startAngle - SLOWDOWN_DISTANCE * degrees;
-                // Correct values if they are under 0
+                // Correct values by adding 360 if they are under 0
                 target = target <= 0 ? target + 360 : target;
                 slowdown = slowdown <= 0 ? slowdown + 360 : slowdown;
-                turnLoop(-TURNING_SPEED, target, slowdown);
+                turnLoop(TURNING_SPEED, target, slowdown);
             } else if (dir == Direction.LEFT) {
                 double target = startAngle + degrees;
                 double slowdown = startAngle + SLOWDOWN_DISTANCE * degrees;
-                // Correct values if they are over 360
+                // Correct values by subtracting 360 if they are over 360
                 target = target >= 360 ? target - 360 : target;
                 slowdown = slowdown >= 360 ? slowdown - 360 : slowdown;
                 
-                turnLoop(TURNING_SPEED, target, slowdown);
+                turnLoop(-TURNING_SPEED, target, slowdown);
             }
     }
     
@@ -214,16 +195,22 @@ public class MecanumAuto extends LinearOpMode {
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             double curAngle = normAngle(angles.firstAngle);
             if (Math.abs(curAngle - slowdown) <= TURNING_PRECISION) speed *= 0.5;
-            drive(0, 0, speed);
+                frontLeft.setPower(0.75);
+                backLeft.setPower(0.75);
+                frontRight.setPower(-0.75);
+                backRight.setPower(-0.75);
+            //drive(0, 0, speed);
             if (Math.abs(curAngle - target) <= TURNING_PRECISION || !opModeIsActive()) turn = false;
         }
         drive(0, 0, 0); // stop bot
     }
     
+    // check if any motor is currently busy
     private boolean isMotorsBusy() {
         return backLeft.isBusy() || backRight.isBusy() || frontLeft.isBusy() || frontRight.isBusy();
     }
     
+    // simple function to allow setting all motors to the same position
     private void setMotorPositions(int pos) {
         backLeft.setTargetPosition(pos);
         backRight.setTargetPosition(pos);
@@ -231,6 +218,7 @@ public class MecanumAuto extends LinearOpMode {
         frontRight.setTargetPosition(pos);
     }
     
+    // adds 360 to an angle if it's under 0, done because the gyro returns negative angles between 180 and 360
     private double normAngle(double angle) {
         return angle > 0 ? angle : 360 + angle;
     }
