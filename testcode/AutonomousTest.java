@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -97,6 +98,7 @@ public class AutonomousTest extends LinearOpMode {
         imuParameters.calibrationDataFile = "AdafruitIMUCalibration.json";
         imuParameters.loggingEnabled = true;
         imuParameters.loggingTag = "IMU";
+        imuParameters.mode = BNO055IMU.SensorMode.IMU;
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(imuParameters);
         
@@ -107,14 +109,17 @@ public class AutonomousTest extends LinearOpMode {
         
         //roverTrackables.activate();
         
-        driveDist(2 * 23.5 * Math.sqrt(2));
+        //driveDist(2 * 23.5 * Math.sqrt(2));
+        driveDist(85);
         sleep(1000);
+        /*drive(0, 0, 0);
         markerServo.setPosition(markerOpen);
         drive(0, -0.5, 0);
-        sleep(100);
-        turn(45, Direction.LEFT);
+        */sleep(1000);
+        turn(45, Direction.RIGHT);
         driveDist(4.5 * 23.5);
-        markerServo.setPosition(markerClose);
+        //markerServo.setPosition(markerClose);
+        
     }
     
     private void drive(double drive, double strafe, double rotate) {
@@ -202,20 +207,20 @@ public class AutonomousTest extends LinearOpMode {
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             double startAngle = normAngle(angles.firstAngle);
             if (dir == Direction.LEFT) {
-                double target = startAngle - degrees;
-                double slowdown = startAngle - SLOWDOWN_DISTANCE * degrees;
-                // Correct values if they are under 0
-                target = target <= 0 ? target + 360 : target;
-                slowdown = slowdown <= 0 ? slowdown + 360 : slowdown;
-                turnLoop(-TURNING_SPEED, target, slowdown);
-            } else if (dir == Direction.RIGHT) {
                 double target = startAngle + degrees;
                 double slowdown = startAngle + SLOWDOWN_DISTANCE * degrees;
-                // Correct values if they are over 360
-                target = target >= 360 ? target - 360 : target;
-                slowdown = slowdown >= 360 ? slowdown - 360 : slowdown;
-                
+                // Correct values if they are under 0
+                target = target <= 0 ? target - 360 : target;
+                slowdown = slowdown <= 0 ? slowdown - 360 : slowdown;
                 turnLoop(TURNING_SPEED, target, slowdown);
+            } else if (dir == Direction.RIGHT) {
+                double target = startAngle - degrees;
+                double slowdown = startAngle - SLOWDOWN_DISTANCE * degrees;
+                // Correct values if they are over 360
+                target = target >= 360 ? target + 360 : target;
+                slowdown = slowdown >= 360 ? slowdown + 360 : slowdown;
+                
+                turnLoop(-TURNING_SPEED, target, slowdown);
             }
     }
     
@@ -225,6 +230,9 @@ public class AutonomousTest extends LinearOpMode {
         while (turn) {
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             double curAngle = normAngle(angles.firstAngle);
+             telemetry.addData("Target Deg", "%2.3f", target);
+             telemetry.addData("Current Deg", "%2.3f", curAngle);
+             telemetry.update();
             if (Math.abs(curAngle - slowdown) <= TURNING_PRECISION) speed *= 0.5;
             drive(0, 0, speed);
             if (Math.abs(curAngle - target) <= TURNING_PRECISION || !opModeIsActive()) turn = false;
