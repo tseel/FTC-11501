@@ -9,9 +9,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class MecanumDrive extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     
+    // hardware initialization
     private MecanumRobot bot = new MecanumRobot(this);
     
+    // for the marker servo's button toggle
     boolean markerServoOpen = false;
+    
+    // debounce variables, one for each controller, allows for button toggles
     String db1 = "";
     String db2 = "";
 
@@ -35,9 +39,9 @@ public class MecanumDrive extends LinearOpMode {
             // Marker servo
             if (gamepad2.y && !db2.equals("y")) {
                 markerServoOpen = !markerServoOpen;
-                db2 = "y";
+                db2 = "y"; // set debounce to y
             } else if (!gamepad2.y && db2.equals("y")) {
-                db2 = "";
+                db2 = ""; // clear debounce
             }
             
             if (markerServoOpen) {

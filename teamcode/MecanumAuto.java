@@ -42,7 +42,7 @@ public class MecanumAuto extends LinearOpMode {
         // strafe to the left to not hit marker
         bot.strafe(SQUARE_LEN / 3.25, Direction.LEFT);
         bot.closeMarkerServo();
-        // turn toward crater
+        // turn all the way around toward crater
         bot.turn(175, Direction.LEFT);
         // drive to crater
         bot.autoDrive(4.5 * SQUARE_LEN);

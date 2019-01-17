@@ -16,8 +16,10 @@ public class MecanumRobot {
     
     private ElapsedTime runtime = new ElapsedTime();
     
+    // when initializing, stores the current opMode
     private LinearOpMode opMode;
     
+    // constants for the marker servo
     private static final double markerOpen = 0;
     private static final double markerClose = (double) 115 / 180;
 
@@ -40,13 +42,22 @@ public class MecanumRobot {
     private final int TICKS_PER_REV = 1120; 
     private final double DRIVE_SPEED = 0.75;
     
+    /**
+     * @param opMode the OpMode to be used with the setup
+     */
     public MecanumRobot(LinearOpMode opMode) {
         this.opMode = opMode;
     }
     
+    /**
+     * Drive method for Autonomous
+     * @param dist distance in inches to drive
+     */
     public void autoDrive(double dist) {
         // set encoders to
         int counts = (int) Math.round(((dist / WHEEL_CIRCUMFERENCE) / GEAR_RATIO) * TICKS_PER_REV);
+        
+        // reset all encoders
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         
         setMotorPositions(counts);
@@ -56,7 +67,7 @@ public class MecanumRobot {
         setPower(DRIVE_SPEED);
         
         while (isMotorsBusy() && opMode.opModeIsActive()) {
-            encoderTel(counts);
+            encoderTel();
         }
         opMode.telemetry.update();
         setPower(0);
@@ -64,6 +75,12 @@ public class MecanumRobot {
         setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     
+    /**
+     * Drive method for TeleOp
+     * @param drive value -1 (backward) to 1 (forward) on how much to drive forward/backward
+     * @param strafe value -1 (left) to 1 (right) on how much to strafe
+     * @param rotate value -1 (left) to 1 (right) on how much to rotate
+     */
     public void manualDrive(double drive, double strafe, double rotate) {
         double frontRPower = drive + strafe - rotate;
         double frontLPower = drive - strafe + rotate;
@@ -78,6 +95,11 @@ public class MecanumRobot {
         // TODO: add telemetry
     }
     
+    /**
+     * method to turn in Autonomous
+     * @param degrees distance in degrees to turn
+     * @param dir direction to turn using a Direction enum
+     */
     public void turn(double degrees, Direction dir) {
         // constants used for both directions
         double TURNING_SPEED = 0.75;
@@ -101,7 +123,12 @@ public class MecanumRobot {
             turnLoop(-TURNING_SPEED, target, slowdown);
         }
     }
-    
+    /**
+     * loop for Autonomous turning
+     * @param speed amount of power to give motors
+     * @param target the target heading to end at
+     * @param slowdown fraction of distance (between 0 and 1) before bot slows down
+     */
     private void turnLoop(double speed, double target, double slowdown) {
         double TURNING_PRECISION = 2; // amount of degrees that allows stopping
         boolean turn = true; // dummy variable because I hate do-while loops
@@ -117,13 +144,18 @@ public class MecanumRobot {
         }
         setPower(0); // stop bot
     }
-    
+
+    /**
+     * method to strafe in Autonomous
+     * @param degrees distance in inches to strafe
+     * @param dir direction to strafe using a Direction enum
+     */
     public void strafe(double dist, Direction direction) {
         // i don't know why this is multiplied by 1.5 but it seems to be pretty accurate
         int counts = (int) Math.round(((dist / WHEEL_CIRCUMFERENCE) / GEAR_RATIO) * TICKS_PER_REV * 1.5);
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         
-        // TODO: refactor this? might not be worth it tbh
+        // TODO: refactor this? might not be worth it
         if (direction == Direction.RIGHT) {
             backLeft.setTargetPosition(-counts);
             frontLeft.setTargetPosition(counts);
@@ -141,7 +173,7 @@ public class MecanumRobot {
         setPower(DRIVE_SPEED);
         
         while (isMotorsBusy() && opMode.opModeIsActive()) {
-            encoderTel(counts);
+            encoderTel();
         }
         opMode.telemetry.update();
         setPower(0);
@@ -149,15 +181,24 @@ public class MecanumRobot {
         setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     
+    /**
+     * method to drop the marker and then sleep
+     */
     public void dropMarker() {
         markerServo.setPosition(markerOpen);
         opMode.sleep(500);
     }
     
+    /** 
+     * method to close the marker servo
+     */
     public void closeMarkerServo() {
         markerServo.setPosition(markerClose);
     }
     
+    /**
+     * Initializes all motors and servos and sets direction. Run at start of any OpMode.
+     */
     public void initDrive() {
         
         // initialize hardware
@@ -183,6 +224,9 @@ public class MecanumRobot {
     
     // unused
     // TODO: set this up
+    /**
+     * initializes Vuforia. Use at the start of autonomous opmodes using Vuforia | UNFINISHED
+     */
     public void initVuforia() {
         VuforiaLocalizer vuforia;
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
@@ -194,6 +238,9 @@ public class MecanumRobot {
         //VuforiaTrackables roverTrackables = vuforia.loadTrackablesFromAsset(""); // TODO: find the name for the trackables
     }
     
+    /**
+     * initializes the IMU (gyroscope)
+     */
     public void initImu() {
         BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
         imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES; // wouldn't return radians even when I set this to radians?
@@ -206,7 +253,10 @@ public class MecanumRobot {
         imu.initialize(imuParameters);
     }
     
-    // simple way to set the mode of all motors at once
+    /**
+     * simple way to set the mode of all drive motors at once
+     * @param mode the mode to set the motors to
+     */
     private void setMode(DcMotor.RunMode mode) {
         frontRight.setMode(mode);
         frontLeft.setMode(mode);
@@ -214,7 +264,10 @@ public class MecanumRobot {
         backLeft.setMode(mode);
     }
     
-    // simple way to set the power of all motors equal. usually used to stop the bot
+    /**
+     * simple way to set the power of all drive motors equal. usually used to stop the bot
+     * @param power a decimal -1 to 1 of the power to set the motors to
+     */
     private void setPower(double power) {
         frontRight.setPower(power);
         frontLeft.setPower(power);
@@ -222,12 +275,18 @@ public class MecanumRobot {
         backLeft.setPower(power);
     }
     
-    // check if any drive motor is currently busy
+    /**
+     * checks if any drive motor is currently busy
+     * @return true if any drive motor is busy
+     */
     private boolean isMotorsBusy() {
         return backLeft.isBusy() || backRight.isBusy() || frontLeft.isBusy() || frontRight.isBusy();
     }
     
-    // simple function to allow setting all motors to the same position
+    /**
+     * simple function to allow setting all drive motors to the same position
+     * @param pos position to set the motors to.
+     */
     private void setMotorPositions(int pos) {
         backLeft.setTargetPosition(pos);
         backRight.setTargetPosition(pos);
@@ -235,28 +294,19 @@ public class MecanumRobot {
         frontRight.setTargetPosition(pos);
     }
     
-    // adds 360 to an angle if it's under 0, used because the gyro returns negative angles between 180 and 360
+    /**
+     * normalizes angles to all be positive
+     * adds 360 to an angle if it's under 0, used because the gyro returns negative angles between 180 and 360
+     * @param angle angle to make positive
+     */
     private double normAngle(double angle) {
         return angle > 0 ? angle : 360 + angle;
     }
-    
-    private void setMotorsBrake() {
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    }
-    
-    private void setMotorsFloat() {
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-    }
 
-    // telemetry for the encoders
-    private void encoderTel(int counts) {
-        opMode.telemetry.addData("Counts", "%d", counts);
+    /**
+     * telemetry for the encoders
+     */
+    private void encoderTel() {
         opMode.telemetry.addData("Front left", "%d/%d %.2f %s", frontLeft.getCurrentPosition(), frontLeft.getTargetPosition(), frontLeft.getPower(), frontLeft.isBusy() ? "Busy" : "Finished");
         opMode.telemetry.addData("Front right", "%d/%d %.2f %s", frontRight.getCurrentPosition(), frontRight.getTargetPosition(), frontRight.getPower(), frontRight.isBusy() ? "Busy" : "Finished");
         opMode.telemetry.addData("Back left", "%d/%d %.2f %s", backLeft.getCurrentPosition(), backLeft.getTargetPosition(), backLeft.getPower(), backLeft.isBusy() ? "Busy" : "Finished");
