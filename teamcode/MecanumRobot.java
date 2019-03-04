@@ -20,8 +20,8 @@ public class MecanumRobot {
     private LinearOpMode opMode;
     
     // constants for the marker servo
-    private static final double markerOpen = 0;
-    private static final double markerClose = (double) 115 / 180;
+    public static final double markerOpen = (double) 85 / 180;
+    public static final double markerClose = 1;
 
     // Motor and servo variables
     public DcMotor frontRight;
@@ -29,7 +29,8 @@ public class MecanumRobot {
     public DcMotor backLeft;
     public DcMotor backRight;
     public Servo markerServo;
-    public DcMotor arm;
+    public DcMotor liftUp;
+    public DcMotor liftDown;
 
     // Variables for imu 
     private BNO055IMU imu;
@@ -41,6 +42,9 @@ public class MecanumRobot {
     private final double GEAR_RATIO = 1;
     private final int TICKS_PER_REV = 1120; 
     private final double DRIVE_SPEED = 0.75;
+    
+    private final double LIFT_GEAR_RATIO = (double) 80 / 40;
+    private final double LIFT_SPEED = 0.1; 
     
     /**
      * @param opMode the OpMode to be used with the setup
@@ -197,6 +201,36 @@ public class MecanumRobot {
     }
     
     /**
+     * method to operate the lift
+     * @param dist distance (in inches) to move the lift. negative numbers go down.
+     */
+     public void moveLift(int dist) {
+        int counts = (int) Math.round((dist / LIFT_GEAR_RATIO) * TICKS_PER_REV);
+        liftUp.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftDown.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        
+        liftUp.setTargetPosition((int) Math.round(counts*1.125));
+        liftDown.setTargetPosition(-counts);
+        
+        liftUp.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftDown.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        
+        liftUp.setPower(LIFT_SPEED);
+        liftDown.setPower(LIFT_SPEED);
+        
+        while ((liftUp.isBusy() || liftDown.isBusy()) && opMode.opModeIsActive()) {
+        
+            
+        }
+
+        liftUp.setPower(0);
+        liftDown.setPower(0);
+
+        liftUp.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftDown.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+     }
+    
+    /**
      * Initializes all motors and servos and sets direction. Run at start of any OpMode.
      */
     public void initDrive() {
@@ -207,19 +241,24 @@ public class MecanumRobot {
         backRight   = opMode.hardwareMap.get(DcMotor.class, "back_right");
         backLeft    = opMode.hardwareMap.get(DcMotor.class, "back_left");
         markerServo = opMode.hardwareMap.get(Servo.class, "marker_servo");
-        arm         = opMode.hardwareMap.get(DcMotor.class, "arm_motor");
+        liftUp      = opMode.hardwareMap.get(DcMotor.class, "lift_up");
+        liftDown    = opMode.hardwareMap.get(DcMotor.class, "lift_down");
 
         // set motor directions
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.FORWARD);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
-        arm.setDirection(DcMotor.Direction.FORWARD);
-
-        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftUp.setDirection(DcMotor.Direction.FORWARD);
+        liftDown.setDirection(DcMotor.Direction.REVERSE);
+        
+        liftUp.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftDown.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // set motors runmodes
         setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftUp.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftDown.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     
     // unused
@@ -304,6 +343,7 @@ public class MecanumRobot {
     }
 
     /**
+     * 
      * telemetry for the encoders
      */
     private void encoderTel() {

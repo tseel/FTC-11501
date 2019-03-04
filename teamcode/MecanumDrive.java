@@ -19,6 +19,8 @@ public class MecanumDrive extends LinearOpMode {
     String db1 = "";
     String db2 = "";
 
+    boolean backward = false;
+
     @Override
     public void runOpMode() {
         // Assign hardware to variables from map.
@@ -34,7 +36,18 @@ public class MecanumDrive extends LinearOpMode {
             double strafe = gamepad1.right_trigger - gamepad1.left_trigger;
             double rotate = gamepad1.right_stick_x;
             
-            bot.manualDrive(drive, strafe, rotate);
+            if (!backward) {
+                bot.manualDrive(drive, strafe, rotate);
+            } else {
+                bot.manualDrive(-drive, -strafe, -rotate);
+            }
+            
+            if (gamepad1.y && !db1.equals("y")) {
+                backward = !backward;
+                db1 = "y";
+            } else if (!gamepad1.y && db1.equals("y")) {
+                db1 = "";
+            }
             
             // Marker servo
             if (gamepad2.y && !db2.equals("y")) {
@@ -45,14 +58,15 @@ public class MecanumDrive extends LinearOpMode {
             }
             
             if (markerServoOpen) {
-                bot.markerServo.setPosition(0);
+                bot.markerServo.setPosition(bot.markerOpen);
             } else {
-                bot.markerServo.setPosition((double) 115 / 180);
+                bot.markerServo.setPosition(bot.markerClose);
             }
             
-            // Arm
-            double armPower = gamepad2.left_stick_y / 3;
-            bot.arm.setPower(armPower);
+            double liftUpPower = gamepad2.left_stick_y / 2;
+            double liftDownPower = gamepad2.right_stick_y / 2;
+            bot.liftUp.setPower(-liftUpPower * 1.125);
+            bot.liftDown.setPower(liftDownPower);
         }
     }
 }
