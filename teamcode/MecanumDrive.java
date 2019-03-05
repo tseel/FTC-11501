@@ -32,9 +32,9 @@ public class MecanumDrive extends LinearOpMode {
         
         while(opModeIsActive()) {
             // driving
-            double drive  = gamepad1.left_stick_y;
-            double strafe = gamepad1.right_trigger - gamepad1.left_trigger;
-            double rotate = gamepad1.right_stick_x;
+            double drive  = -gamepad1.left_stick_y;
+            double strafe = gamepad1.left_trigger - gamepad1.right_trigger;
+            double rotate = -gamepad1.right_stick_x;
             
             if (!backward) {
                 bot.manualDrive(drive, strafe, rotate);
@@ -61,6 +61,10 @@ public class MecanumDrive extends LinearOpMode {
                 bot.markerServo.setPosition(bot.markerOpen);
             } else {
                 bot.markerServo.setPosition(bot.markerClose);
+            }
+            
+            if (!bot.isLiftBusy() && gamepad2.a) {
+                bot.moveLift(-4.5);
             }
             
             double liftUpPower = gamepad2.left_stick_y / 2;

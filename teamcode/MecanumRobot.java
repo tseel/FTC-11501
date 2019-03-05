@@ -44,7 +44,7 @@ public class MecanumRobot {
     private final double DRIVE_SPEED = 0.75;
     
     private final double LIFT_GEAR_RATIO = (double) 80 / 40;
-    private final double LIFT_SPEED = 0.1; 
+    private final double LIFT_SPEED = 0.5; 
     
     /**
      * @param opMode the OpMode to be used with the setup
@@ -117,14 +117,14 @@ public class MecanumRobot {
             // Correct values by adding 360 if they are under 0
             target = target <= 0 ? target + 360 : target;
             slowdown = slowdown <= 0 ? slowdown + 360 : slowdown;
-            turnLoop(TURNING_SPEED, target, slowdown);
+            turnLoop(-TURNING_SPEED, target, slowdown);
         } else if (dir == Direction.LEFT) {
             double target = startAngle + degrees;
             double slowdown = startAngle + SLOWDOWN_DISTANCE * degrees;
             // Correct values by subtracting 360 if they are over 360
             target = target >= 360 ? target - 360 : target;
             slowdown = slowdown >= 360 ? slowdown - 360 : slowdown;
-            turnLoop(-TURNING_SPEED, target, slowdown);
+            turnLoop(TURNING_SPEED, target, slowdown);
         }
     }
     /**
@@ -204,8 +204,8 @@ public class MecanumRobot {
      * method to operate the lift
      * @param dist distance (in inches) to move the lift. negative numbers go down.
      */
-     public void moveLift(int dist) {
-        int counts = (int) Math.round((dist / LIFT_GEAR_RATIO) * TICKS_PER_REV);
+     public void moveLift(double dist) {
+        int counts = (int) Math.round((dist / LIFT_GEAR_RATIO) * TICKS_PER_REV * 4.0/3.0);
         liftUp.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         liftDown.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         
@@ -218,7 +218,7 @@ public class MecanumRobot {
         liftUp.setPower(LIFT_SPEED);
         liftDown.setPower(LIFT_SPEED);
         
-        while ((liftUp.isBusy() || liftDown.isBusy()) && opMode.opModeIsActive()) {
+        while (isLiftBusy() && opMode.opModeIsActive()) {
         
             
         }
@@ -245,10 +245,10 @@ public class MecanumRobot {
         liftDown    = opMode.hardwareMap.get(DcMotor.class, "lift_down");
 
         // set motor directions
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.FORWARD);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        frontLeft.setDirection(DcMotor.Direction.FORWARD);
+        backRight.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.FORWARD);
         liftUp.setDirection(DcMotor.Direction.FORWARD);
         liftDown.setDirection(DcMotor.Direction.REVERSE);
         
@@ -318,9 +318,18 @@ public class MecanumRobot {
      * checks if any drive motor is currently busy
      * @return true if any drive motor is busy
      */
-    private boolean isMotorsBusy() {
+    public boolean isMotorsBusy() {
         return backLeft.isBusy() || backRight.isBusy() || frontLeft.isBusy() || frontRight.isBusy();
     }
+    
+    /**
+     * checks if either lift motor is currently busy
+     * @return true if any lift motor is busy
+     */
+     public boolean isLiftBusy() {
+         return liftUp.isBusy() || liftDown.isBusy();
+     }
+    
     
     /**
      * simple function to allow setting all drive motors to the same position

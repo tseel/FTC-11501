@@ -27,12 +27,14 @@ public class MecanumAuto extends LinearOpMode {
         waitForStart();
         runtime.reset();
         
-        bot.moveLift(4);
-        bot.moveLift(-4);
+        bot.turn(90, Direction.LEFT);
+        bot.strafe(2, Direction.RIGHT);
+        //bot.moveLift(-4);
         //driveSequence();
     }
     
     private void driveSequence() {
+        bot.moveLift(6);
         // drive diagonally over 2 squares to get into depot
         bot.autoDrive(2 * SQUARE_LEN * Math.sqrt(2));
         // turn to make marker-dropper face inward
