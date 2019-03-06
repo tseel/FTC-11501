@@ -108,7 +108,10 @@ public class MecanumRobot {
         // constants used for both directions
         double TURNING_SPEED = 0.75;
         double SLOWDOWN_DISTANCE = 0.6; // fraction of distance before bot slows down
-            
+        
+        setZeroPower(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double startAngle = normAngle(angles.firstAngle);
         if (dir == Direction.RIGHT) {
@@ -126,6 +129,8 @@ public class MecanumRobot {
             slowdown = slowdown >= 360 ? slowdown - 360 : slowdown;
             turnLoop(TURNING_SPEED, target, slowdown);
         }
+        
+        setZeroPower(DcMotor.ZeroPowerBehavior.FLOAT);
     }
     /**
      * loop for Autonomous turning
@@ -340,6 +345,13 @@ public class MecanumRobot {
         backRight.setTargetPosition(pos);
         frontLeft.setTargetPosition(pos);
         frontRight.setTargetPosition(pos);
+    }
+    
+    private void setZeroPower(DcMotor.ZeroPowerBehavior z) {
+        backLeft.setZeroPowerBehavior(z);
+        backRight.setZeroPowerBehavior(z);
+        frontLeft.setZeroPowerBehavior(z);
+        frontRight.setZeroPowerBehavior(z);
     }
     
     /**

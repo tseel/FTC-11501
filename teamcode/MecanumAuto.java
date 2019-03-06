@@ -27,26 +27,26 @@ public class MecanumAuto extends LinearOpMode {
         waitForStart();
         runtime.reset();
         
-        bot.turn(90, Direction.LEFT);
-        bot.strafe(2, Direction.RIGHT);
-        //bot.moveLift(-4);
-        //driveSequence();
+        driveSequence();
     }
     
     private void driveSequence() {
+        // start hanging
+        // go down
         bot.moveLift(6);
+        // TODO: unhook from lander
+        
         // drive diagonally over 2 squares to get into depot
         bot.autoDrive(2 * SQUARE_LEN * Math.sqrt(2));
         // turn to make marker-dropper face inward
-        bot.turn(45, Direction.LEFT);
+        bot.turn(45, Direction.RIGHT);
         // drop marker
         bot.dropMarker();
-        // strafe to the left to not hit marker
-        bot.strafe(SQUARE_LEN / 3.25, Direction.LEFT);
+        // strafe to the right to not hit marker
+        bot.strafe(SQUARE_LEN / 3.75, Direction.RIGHT);
         bot.closeMarkerServo();
-        // turn all the way around toward crater
-        bot.turn(175, Direction.LEFT);
         // drive to crater
+        bot.turn(85, Direction.RIGHT);
         bot.autoDrive(5* SQUARE_LEN);
     }
 }
