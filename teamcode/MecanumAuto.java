@@ -33,11 +33,17 @@ public class MecanumAuto extends LinearOpMode {
     private void driveSequence() {
         // start hanging
         // go down
-        bot.moveLift(6);
-        // TODO: unhook from lander
+        bot.moveLift(9.7);
+        // unhook from lander
+        bot.strafe(6, Direction.LEFT);
+        bot.autoDrive(3);
+        bot.strafe(6, Direction.RIGHT);
         
+        // correct for minor disorientation
+        bot.turn(5, Direction.LEFT);
+
         // drive diagonally over 2 squares to get into depot
-        bot.autoDrive(2 * SQUARE_LEN * Math.sqrt(2));
+        bot.autoDrive((2 * SQUARE_LEN * Math.sqrt(2)) - 4);
         // turn to make marker-dropper face inward
         bot.turn(45, Direction.RIGHT);
         // drop marker
@@ -45,8 +51,13 @@ public class MecanumAuto extends LinearOpMode {
         // strafe to the right to not hit marker
         bot.strafe(SQUARE_LEN / 3.75, Direction.RIGHT);
         bot.closeMarkerServo();
-        // drive to crater
-        bot.turn(85, Direction.RIGHT);
+        
+        // drive out of square to get out of way
+        bot.autoDrive(-SQUARE_LEN);
+
+        /* drive to crater
+        bot.turn(75, Direction.RIGHT);
         bot.autoDrive(5* SQUARE_LEN);
+        */
     }
 }

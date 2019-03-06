@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -63,14 +64,15 @@ public class MecanumDrive extends LinearOpMode {
                 bot.markerServo.setPosition(bot.markerClose);
             }
             
-            if (!bot.isLiftBusy() && gamepad2.a) {
-                bot.moveLift(-4.5);
-            }
-            
             double liftUpPower = gamepad2.left_stick_y / 2;
             double liftDownPower = gamepad2.right_stick_y / 2;
             bot.liftUp.setPower(-liftUpPower * 1.125);
             bot.liftDown.setPower(liftDownPower);
+            
+            /*if (!bot.isLiftBusy() && gamepad2.a) {
+                bot.moveLift(-4.5);
+            }*/
+            
         }
     }
 }

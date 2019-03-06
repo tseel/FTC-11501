@@ -210,7 +210,7 @@ public class MecanumRobot {
      * @param dist distance (in inches) to move the lift. negative numbers go down.
      */
      public void moveLift(double dist) {
-        int counts = (int) Math.round((dist / LIFT_GEAR_RATIO) * TICKS_PER_REV * 4.0/3.0);
+        int counts = (int) Math.round((dist / LIFT_GEAR_RATIO) * TICKS_PER_REV * 0.9);
         liftUp.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         liftDown.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         
